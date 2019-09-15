@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>XPlat.VUI</RootNamespace>
+    <AssemblyName>XPlat.VUI</AssemblyName>
+    <LangVersion>8.0</LangVersion>
+    <Version>0.0.1</Version>
+    <Authors>himanago</Authors>
+    <Company />
+    <Copyright>himanago</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Alexa.NET" Version="1.8.2" />
+    <PackageReference Include="CEK.CSharp" Version="0.2.1" />
+    <PackageReference Include="Google.Cloud.Dialogflow.V2" Version="1.0.0" />
+  </ItemGroup>
+
+</Project>
