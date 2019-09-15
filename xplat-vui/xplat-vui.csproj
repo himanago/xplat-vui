@@ -5,10 +5,16 @@
     <RootNamespace>XPlat.VUI</RootNamespace>
     <AssemblyName>XPlat.VUI</AssemblyName>
     <LangVersion>8.0</LangVersion>
-    <Version>0.0.1</Version>
+    <Version>0.0.1.1</Version>
     <Authors>himanago</Authors>
     <Company />
-    <Copyright>himanago</Copyright>
+    <Copyright>Copyright (c) 2019 himanago</Copyright>
+    <PackageProjectUrl>https://github.com/himanago/xplat-vui</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/himanago/xplat-vui</RepositoryUrl>
+    <PackageTags>VUI,Amazon,Alexa,Echo,Dialogflow,Google,LINE,CEK,Clova</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Description>A simple cross-platform library for building VUI smart speaker skills.</Description>
   </PropertyGroup>
 
   <ItemGroup>
