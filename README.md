@@ -111,6 +111,17 @@ Response
     .Speak("私はクローバです。", Platform.Clova);
 ```
 
+4\. Different processing for each platform
+
+```csharp
+if (Request.OriginalClovaRequest != null)
+{
+    // Push LINE Message to same account
+    await lineMessagingClient.PushMessageAsync(
+        Request.OriginalClovaRequest.Session.User.UserId, "Hello!");        
+}
+```
+
 # LISENCE
 
 [MIT](./LICENSE)

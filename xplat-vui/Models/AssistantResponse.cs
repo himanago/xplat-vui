@@ -12,6 +12,7 @@ namespace XPlat.VUI.Models
         private List<OutputObject> OutputObjects { get; set; } = new List<OutputObject>();
         private bool ShouldEndSession { get; set; } = true;
         private string RepromptText { get; set; }
+        internal string UserId { get; set; }
 
         public AssistantResponse Speak(string text, Platform targetPlatform = Platform.All)
         {
@@ -37,7 +38,7 @@ namespace XPlat.VUI.Models
         public string ToGoogleAssistantResponse()
         {
             var webhookResponse = new WebhookResponse
-            {
+            {                
                 FulfillmentText = GetSsmlResponse(Platform.GoogleAssistant),
                 Payload = new Struct
                 {
@@ -46,13 +47,17 @@ namespace XPlat.VUI.Models
                         {
                             "google", Value.ForStruct(new Struct
                             {
-                                Fields = { { "expectUserResponse", Value.ForBool(!ShouldEndSession) } }
+                                Fields =
+                                {
+                                    { "expectUserResponse", Value.ForBool(!ShouldEndSession) },
+                                    { "userStorage", Value.ForString($"{{ \"userId\": \"{UserId}\" }}") },
+                                    { "resetUserStorage", Value.ForBool(true) }
+                                }
                             })
-                        }
+                        },
                     }
-                }
+                }            
             };
-
             return webhookResponse.ToString();
         }
 
