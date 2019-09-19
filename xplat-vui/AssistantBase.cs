@@ -43,41 +43,55 @@ namespace XPlat.VUI
         {
             Response = new AssistantResponse();
 
-            using (var reader = new StreamReader(req.Body, Encoding.UTF8))
-            {
-                var json = await reader.ReadToEndAsync();
-                switch (targetPlatform)
-                {
-                    case Platform.GoogleAssistant:
-                        ParseRequestForGoogleAssistant(json);
-                        break;
-                    case Platform.Alexa:
-                        await ParseRequestForAlexa(req, json);
-                        break;
-                    case Platform.Clova:
-                        await ParseRequestForClova(req, json);
-                        break;
-                    default:
-                        throw new InvalidOperationException($"targetPlatform:{targetPlatform}");
-                }
+            var bodyContent = ConvertStreamToByteArray(req.Body);
 
-                switch (Request.Type)
-                {
-                    case Models.RequestType.LaunchRequest:
-                        await OnLaunchRequestAsync(Request.Session, cancellationToken);
-                        break;
-                    case Models.RequestType.IntentRequest:
-                        await OnIntentRequestAsync(Request.Intent, Request.Slots, Request.Session, cancellationToken);
-                        break;
-                }
+            switch (targetPlatform)
+            {
+                case Platform.GoogleAssistant:
+                    ParseRequestForGoogleAssistant(bodyContent);
+                    break;
+                case Platform.Alexa:
+                    await ParseRequestForAlexa(req, bodyContent);
+                    break;
+                case Platform.Clova:
+                    await ParseRequestForClova(req, bodyContent);
+                    break;
+                default:
+                    throw new InvalidOperationException($"targetPlatform:{targetPlatform}");
+            }
+
+            switch (Request.Type)
+            {
+                case Models.RequestType.LaunchRequest:
+                    await OnLaunchRequestAsync(Request.Session, cancellationToken);
+                    break;
+                case Models.RequestType.IntentRequest:
+                    await OnIntentRequestAsync(Request.Intent, Request.Slots, Request.Session, cancellationToken);
+                    break;
             }
 
             Response.UserId = Request.UserId;
             return Response;
         }
 
-        private async Task ParseRequestForAlexa(HttpRequest req, string json)
+        private byte[] ConvertStreamToByteArray(Stream stream)
         {
+            using (var ms = new MemoryStream())
+            {
+                var buffer = new byte[16 * 1024];
+                int read;
+                while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    ms.Write(buffer, 0, read);
+                }
+                return ms.ToArray();
+            }
+        }
+
+        private async Task ParseRequestForAlexa(HttpRequest req, byte[] bodyContent)
+        {
+            var json = Encoding.UTF8.GetString(bodyContent);
+
             var skillRequest = JsonConvert.DeserializeObject<SkillRequest>(json);
 
             await ValidateAlexaRequestAsync(req, skillRequest, json);
@@ -135,8 +149,10 @@ namespace XPlat.VUI
             }
         }
 
-        private void ParseRequestForGoogleAssistant(string json)
+        private void ParseRequestForGoogleAssistant(byte[] bodyContent)
         {
+            var json = Encoding.UTF8.GetString(bodyContent);
+
             var parser = new JsonParser(JsonParser.Settings.Default.WithIgnoreUnknownFields(true));
             var webhookRequest = parser.Parse<WebhookRequest>(json);
 
@@ -209,11 +225,13 @@ namespace XPlat.VUI
             return userId;
         }
 
-        private async Task ParseRequestForClova(HttpRequest req, string json)
+        private async Task ParseRequestForClova(HttpRequest req, byte[] bodyContent)
         {
+            var json = Encoding.UTF8.GetString(bodyContent);
+
             var cekRequest = JsonConvert.DeserializeObject<CEKRequest>(json);
 
-            await ValidateClovaRequestAsync(req);
+            await ValidateClovaRequestAsync(req.Headers["SignatureCEK"], bodyContent);
 
             switch (cekRequest.Request.Type)
             {
@@ -237,10 +255,8 @@ namespace XPlat.VUI
             Request.UserId = Request.OriginalClovaRequest.Session.User.UserId;
         }
 
-        private async Task ValidateClovaRequestAsync(HttpRequest req)
+        private async Task ValidateClovaRequestAsync(string signatureCEK, byte[] bodyContent)
         {
-            var signatureCEK = req.Headers["SignatureCEK"];
-
             if (string.IsNullOrEmpty(signatureCEK))
             {
                 throw new Exception("Empty Signature header");
@@ -251,20 +267,10 @@ namespace XPlat.VUI
                 cert = await HttpClient.GetStringAsync("https://clova-cek-requests.line.me/.well-known/signature-public-key.pem");
             }
 
-            using (var ms = new MemoryStream())
+            var provider = PemKeyUtils.GetRSAProviderFromPemString(cert.Trim());
+            if (!provider.VerifyData(bodyContent, Convert.FromBase64String(signatureCEK), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
             {
-                var buffer = new byte[16 * 1024];
-                int read;
-                while ((read = req.Body.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    ms.Write(buffer, 0, read);
-                }
-                var body =  ms.ToArray();
-                var provider = PemKeyUtils.GetRSAProviderFromPemString(cert.Trim());
-                if (!provider.VerifyData(body, Convert.FromBase64String(signatureCEK), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
-                {
-                    //throw new Exception("Invalid Signature");
-                }
+                throw new Exception("Invalid Signature");
             }
         }
 

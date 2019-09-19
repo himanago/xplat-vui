@@ -17,6 +17,17 @@ namespace XPlat.VUI.Models
         public SkillRequest OriginalAlexaRequest { get; internal set; }
         public CEKRequest OriginalClovaRequest { get; internal set; }
         public string UserId { get; internal set; }
+        public Platform CurrentPlatform
+        {
+            get
+            {
+                return
+                    OriginalGoogleRequest != null ? Platform.GoogleAssistant :
+                    OriginalAlexaRequest != null ? Platform.Alexa :
+                    OriginalClovaRequest != null ? Platform.Clova :
+                    throw new Exception("Request objects are null.");
+            }
+        }
     }
 
     public enum RequestType

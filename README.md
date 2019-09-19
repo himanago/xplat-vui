@@ -114,7 +114,7 @@ Response
 4\. Different processing for each platform
 
 ```csharp
-if (Request.OriginalClovaRequest != null)
+if (Request.CurrentPlatform == Platform.Clova)
 {
     // Push LINE Message to same account
     await lineMessagingClient.PushMessageAsync(
