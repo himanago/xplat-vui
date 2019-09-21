@@ -8,8 +8,7 @@ namespace XPlat.VUI
            where T1 : class, IAssistant
            where T2 : AssistantBase, T1, new()
         {
-            var assistant = new T2();
-            return services.AddScoped<T1, T2>(_ => assistant);
+            return services.AddScoped<T1, T2>(_ => new T2());
         }
     }
 }
