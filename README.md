@@ -84,8 +84,6 @@ public class MyAssistant : AssistantBase
 
 You can add content for response of Assistant Extension to `Response` property with method chaining.
 
-When you add the text, you can also set the language to overwrite default language.
-
 1\. Add Reply. 
 
 ```csharp
