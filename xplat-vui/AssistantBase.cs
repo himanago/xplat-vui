@@ -109,7 +109,7 @@ namespace XPlat.VUI
                     {
                         Type = Models.RequestType.IntentRequest,
                         Intent = ir.Intent.Name,
-                        Slots = ir.Intent.Slots.ToDictionary(s => s.Key, s => (object)s.Value.Value),
+                        Slots = ir.Intent.Slots?.ToDictionary(s => s.Key, s => (object)s.Value.Value),
                     };
                     break;
             }
@@ -246,7 +246,7 @@ namespace XPlat.VUI
                     {
                         Type = Models.RequestType.IntentRequest,
                         Intent = cekRequest.Request.Intent.Name,
-                        Slots = cekRequest.Request.Intent.Slots.ToDictionary(s => s.Key, s => (object)s.Value.Value),
+                        Slots = cekRequest.Request.Intent.Slots?.ToDictionary(s => s.Key, s => (object)s.Value.Value),
                     };
                     break;
             }
