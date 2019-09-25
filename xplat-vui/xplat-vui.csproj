@@ -5,7 +5,7 @@
     <RootNamespace>XPlat.VUI</RootNamespace>
     <AssemblyName>XPlat.VUI</AssemblyName>
     <LangVersion>8.0</LangVersion>
-    <Version>0.1.1</Version>
+    <Version>0.1.2</Version>
     <Authors>himanago</Authors>
     <Company />
     <Copyright>Copyright (c) 2019 himanago</Copyright>
