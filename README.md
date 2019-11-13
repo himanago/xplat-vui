@@ -54,8 +54,8 @@ public void ConfigureServices(IServiceCollection services)
 Pass request object to handle request and create response.
 
 ```csharp
-var response = await Assistant.RespondAsync(Request);
-return new OkObjectResult(response);
+var response = await Assistant.RespondAsync(req, Platform.GoogleAssistant);  // specify platform
+return new OkObjectResult(response.ToGoogleAssistantResponse());
 ```
 
 ## Override Methods
