@@ -88,8 +88,9 @@ You can add content for response of Assistant Extension to `Response` property w
 
 ```csharp
 Response
-    .Speak("お元気ですか？")
-    .Play("https://dummy.domain/myaudio.mp3");
+    .Speak("お元気ですか？")                     // Speek simple text
+    .Break(3)                                   // Pause for 3 seconds.
+    .Play("https://dummy.domain/myaudio.mp3");  // Play mp3 audio.
 ```
 
 2\. Keep listening for multi-turn session and add reprompt.
@@ -100,7 +101,16 @@ Response
     .KeepListening("元気かどうか教えてください。");
 ```
 
-3\. Different responce for each platform
+3\. Play audio with AudioPlayer / Media responses.
+
+```csharp
+Response.PlayWithAudioPlayer(
+    "sample-id",    // audio item id
+    "https://dummy.domain/myaudio.mp3",   // audio url
+    "Sample Title", "Sample Subtitle").
+```
+
+4\. Different responce for each platform
 
 ```csharp
 Response
@@ -109,14 +119,13 @@ Response
     .Speak("私はクローバです。", Platform.Clova);
 ```
 
-4\. Different processing for each platform
+5\. Different processing for each platform
 
 ```csharp
 if (Request.CurrentPlatform == Platform.Clova)
 {
     // Push LINE Message to same account
-    await lineMessagingClient.PushMessageAsync(
-        Request.OriginalClovaRequest.Session.User.UserId, "Hello!");        
+    await lineMessagingClient.PushMessageAsync(Request.UserId, "Hello!");        
 }
 ```
 

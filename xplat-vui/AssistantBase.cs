@@ -68,6 +68,18 @@ namespace XPlat.VUI
                 case Models.RequestType.IntentRequest:
                     await OnIntentRequestAsync(Request.Intent, Request.Slots, Request.Session, cancellationToken);
                     break;
+                case Models.RequestType.AudioPlayStartedEventRequest:
+                    await OnAudioPlayStartedAsync(Request.Session, cancellationToken);
+                    break;
+                case Models.RequestType.AudioPlayPausedOrStoppedEventRequest:
+                    await OnAudioPlayPausedOrStoppedAsync(Request.Session, cancellationToken);
+                    break;
+                case Models.RequestType.AudioPlayNearlyFinishedEventRequest:
+                    await OnAudioPlayNearlyFinishedAsync(Request.Session, cancellationToken);
+                    break;
+                case Models.RequestType.AudioPlayFinishedEventRequest:
+                    await OnAudioPlayFinishedAsync(Request.Session, cancellationToken);
+                    break;
             }
 
             Response.UserId = Request.UserId;
@@ -109,13 +121,34 @@ namespace XPlat.VUI
                     {
                         Type = Models.RequestType.IntentRequest,
                         Intent = ir.Intent.Name,
-                        Slots = ir.Intent.Slots?.ToDictionary(s => s.Key, s => (object)s.Value.Value),
+                        Slots = ir.Intent.Slots?.ToDictionary(s => s.Key, s => (object)s.Value.Value)
+                    };
+                    break;
+                case AudioPlayerRequest apr:
+                    Request = new AssistantRequest
+                    {
+                        Type = apr.AudioRequestType switch
+                        {
+                            AudioRequestType.PlaybackFinished => Models.RequestType.AudioPlayFinishedEventRequest,
+                            AudioRequestType.PlaybackNearlyFinished => Models.RequestType.AudioPlayNearlyFinishedEventRequest,
+                            AudioRequestType.PlaybackStarted => Models.RequestType.AudioPlayStartedEventRequest,
+                            AudioRequestType.PlaybackStopped => Models.RequestType.AudioPlayPausedOrStoppedEventRequest,
+                            _ => Models.RequestType.UnsupportedRequest
+                        },
+                        PreviousAudioId = apr.Token
+                    };
+                    break;
+                default:
+                    Request = new AssistantRequest
+                    {
+                        Type = Models.RequestType.UnsupportedRequest
                     };
                     break;
             }
 
             Request.OriginalAlexaRequest = skillRequest;
-            Request.UserId = Request.OriginalAlexaRequest.Session.User.UserId;
+            Request.UserId = Request.OriginalAlexaRequest.Context.System.User.UserId;
+            Request.DeviceId = Request.OriginalAlexaRequest.Context.System.Device.DeviceID;
         }
 
         private async Task ValidateAlexaRequestAsync(HttpRequest request, SkillRequest skillRequest, string json)
@@ -238,7 +271,7 @@ namespace XPlat.VUI
                 case LineDC.CEK.Models.RequestType.LaunchRequest:
                     Request = new AssistantRequest
                     {
-                        Type = Models.RequestType.LaunchRequest
+                        Type = Models.RequestType.LaunchRequest,
                     };
                     break;
                 case LineDC.CEK.Models.RequestType.IntentRequest:
@@ -249,10 +282,32 @@ namespace XPlat.VUI
                         Slots = cekRequest.Request.Intent.Slots?.ToDictionary(s => s.Key, s => (object)s.Value.Value),
                     };
                     break;
+
+                case LineDC.CEK.Models.RequestType.EventRequest:
+                    Request = new AssistantRequest
+                    {
+                        Type = cekRequest.Request.Event.Name switch
+                        {
+                            "PlayFinished" => Models.RequestType.AudioPlayFinishedEventRequest,
+                            "PlayPaused" => Models.RequestType.AudioPlayPausedOrStoppedEventRequest,
+                            "PlayStarted" => Models.RequestType.AudioPlayStartedEventRequest,
+                            "PlayStopped" => Models.RequestType.AudioPlayPausedOrStoppedEventRequest,
+                            _ => Models.RequestType.UnsupportedRequest
+                        }
+                    };
+                    break;
+
+                default:
+                    Request = new AssistantRequest
+                    {
+                        Type = Models.RequestType.UnsupportedRequest
+                    };
+                    break;
             }
 
             Request.OriginalClovaRequest = cekRequest;
             Request.UserId = Request.OriginalClovaRequest.Session.User.UserId;
+            Request.DeviceId = Request.OriginalClovaRequest.Context.System.Device.DeviceId;
         }
 
         private async Task ValidateClovaRequestAsync(string signatureCEK, byte[] bodyContent)
@@ -277,6 +332,14 @@ namespace XPlat.VUI
         protected virtual Task OnLaunchRequestAsync(Dictionary<string, object> session, CancellationToken cancellationToken) => Task.CompletedTask;
 
         protected virtual Task OnIntentRequestAsync(string intent, Dictionary<string, object> slots, Dictionary<string, object> session, CancellationToken cancellationToken) => Task.CompletedTask;
+
+        protected virtual Task OnAudioPlayStartedAsync(Dictionary<string, object> session, CancellationToken cancellationToken) => Task.CompletedTask;
+
+        protected virtual Task OnAudioPlayPausedOrStoppedAsync(Dictionary<string, object> session, CancellationToken cancellationToken) => Task.CompletedTask;
+
+        protected virtual Task OnAudioPlayNearlyFinishedAsync(Dictionary<string, object> session, CancellationToken cancellationToken) => Task.CompletedTask;
+
+        protected virtual Task OnAudioPlayFinishedAsync(Dictionary<string, object> session, CancellationToken cancellationToken) => Task.CompletedTask;
 
     }
 }

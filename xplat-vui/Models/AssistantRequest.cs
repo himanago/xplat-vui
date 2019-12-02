@@ -17,6 +17,8 @@ namespace XPlat.VUI.Models
         public SkillRequest OriginalAlexaRequest { get; internal set; }
         public CEKRequest OriginalClovaRequest { get; internal set; }
         public string UserId { get; internal set; }
+        public string DeviceId { get; internal set; }
+        public string PreviousAudioId { get; internal set; }
         public Platform CurrentPlatform
         {
             get
@@ -33,6 +35,11 @@ namespace XPlat.VUI.Models
     public enum RequestType
     {
         LaunchRequest,
-        IntentRequest
+        IntentRequest,
+        AudioPlayStartedEventRequest,
+        AudioPlayPausedOrStoppedEventRequest,
+        AudioPlayNearlyFinishedEventRequest,
+        AudioPlayFinishedEventRequest,
+        UnsupportedRequest
     }
 }
